@@ -1,3 +1,15 @@
+import subprocess
+
+def install_requirements(requirements_file):
+    # Execute pip install command
+    subprocess.check_call(['pip', 'install', '-r', requirements_file])
+
+# Path to the requirements.txt file
+requirements_file = 'requirements.txt'
+
+# Install requirements
+install_requirements(requirements_file)
+
 import streamlit as st
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
@@ -8,6 +20,11 @@ def add_fielder_positions(ax, positions_and_names, fielder_color):
         color = 'blue' if 'Batsman' in name else fielder_color
         ax.scatter(position[0], position[1], c=color)
         ax.text(position[0], position[1] + 0.01, name, fontsize=8, ha='center', color=color, zorder=5)
+
+def draw_fielding_lines(ax, positions_and_names):
+    for position, name in positions_and_names.items():
+        if 'Batsman' not in name:
+            ax.plot([position[0], 0.500], [position[1], 0.615], color='white', linestyle='dashed', linewidth=0.2)
 
 def draw_pitch(ax):
     pitch = patches.Rectangle((0.425, 0.35), 0.15, 0.3, facecolor='peru', alpha=1, zorder=3)
@@ -27,14 +44,15 @@ def add_stumps(ax, stump_color):
 
     # Add label for stumps
     ax.text(0.50, 0.622 + stump_height, '(Batting Side)\nStump ', fontsize=8, color='white', ha='center')  # Batting stump label
-    ax.text(0.50, 0.350 + stump_height, 'Stump \n (Bowling Side)', fontsize=8, color='white', ha='center')  # Bowling stump label
+    ax.text(0.50, 0.345 + stump_height, 'Stump \n (Bowling Side)', fontsize=8, color='white', ha='center')  # Bowling stump label
+
 
 def add_bat(ax, bat_color):
     bat = patches.Rectangle((0.525, 0.605), 0.03, 0.004, angle=165, facecolor=bat_color, edgecolor='black', zorder=4)
     ax.add_patch(bat)
 
 def draw_grease_rectangle(ax, x, y, width, height):
-    grease_rectangle = patches.Rectangle((x, y), width, height, edgecolor='white', fill=False, zorder=2)
+    grease_rectangle = patches.Rectangle((x, y), width, height, edgecolor='white', fill=False, zorder=5)
     ax.add_patch(grease_rectangle)
 
 def draw_grease(ax):
@@ -68,8 +86,8 @@ def draw_cricket_pitch(ax, fielder_color, stump_color, bat_color, outfield_color
     positions_and_names = {
         (0.5, 0.22): 'Bowler',
         (0.5, 0.69): 'Keeper',
-        (0.529, 0.605): 'Batsman',  # Batsman position
-        (0.55, 0.405): 'NS \nBatsman'  # Non-striking Batsman position
+        (0.555, 0.595): 'Batsman',  # Batsman position
+        (0.56, 0.375): 'NS \nBatsman'  # Non-striking Batsman position
     }
 
     # Add user-defined fielding positions
@@ -82,6 +100,9 @@ def draw_cricket_pitch(ax, fielder_color, stump_color, bat_color, outfield_color
 
     # Add bat
     add_bat(ax, bat_color)
+
+    # Draw fielding lines
+    draw_fielding_lines(ax, positions_and_names)
 
     # Draw additional elements
     draw_grease(ax)
@@ -139,15 +160,18 @@ def main():
 
     # Save image options
     st.subheader('Save Image Options')
-    image_format = st.selectbox('Select Image Format', ['PNG', 'JPEG', 'SVG'])
+    image_format = st.selectbox('Select Image Format', ['PNG', 'JPEG'])
     image_dpi = st.slider('Select Image DPI', 50, 300, 100)
     image_size = st.slider('Select Image Size (in inches)', 5, 20, 8)
 
-    # Save image button
+
     if st.button('Save Image'):
-        # Save the plot as an image
+    # Save the plot as an image
         img = io.BytesIO()
-        plt.savefig(img, format=image_format.lower(), dpi=image_dpi, bbox_inches='tight')
+
+        # Choose the appropriate format based on the user's selection
+        image_format = image_format.lower()
+        plt.savefig(img, format=image_format, dpi=image_dpi, bbox_inches='tight')
         img.seek(0)
 
         # Display the saved image
@@ -157,9 +181,11 @@ def main():
         st.download_button(
             label="Download Image",
             data=img,
-            file_name="cricket_pitch_image.png",
-            mime="image/png"
+            file_name="cricket_pitch_image." + image_format,  # Append the selected format to the file name
+            mime="image/" + image_format  # Set the MIME type based on the selected format
         )
+
+
 
 if __name__ == '__main__':
     main()
