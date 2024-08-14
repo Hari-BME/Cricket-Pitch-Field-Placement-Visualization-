@@ -1,7 +1,7 @@
-#Cricket Pitch Visualizer with Streamlit
+# Cricket Pitch Visualizer with Streamlit
 This project is a Streamlit web application that allows you to visualize a cricket pitch with various customization options.
 
-##Description
+## Description
 This app provides an interactive way to visualize a cricket pitch, including:
 
 Fielders' positions with labels (customizable)
